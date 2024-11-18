@@ -56,7 +56,7 @@ document.getElementById("publishBtn").addEventListener("click", function () {
     "status": inputData["status-org"],
     "tags": inputData["ecommerce-product-tags"],
     "description": inputData.description,
-    "in_stock": +inputData.inStock,
+    "in_stock": +inputData.inStock === 1 ,
     "charge_tax": +inputData.chargeTax,
     "image": URL.createObjectURL(dropzoneFile),
   };

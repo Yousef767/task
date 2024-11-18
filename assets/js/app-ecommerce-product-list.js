@@ -21,32 +21,23 @@ $(function () {
   // Variable declaration for table
   var dt_product_table = $(".datatables-products"),
     productAdd = "app-ecommerce-product-add.html",
-    statusObj = {
-      1: { title: "Scheduled", class: "bg-label-warning" },
-      2: { title: "Publish", class: "bg-label-success" },
-      3: { title: "Inactive", class: "bg-label-danger" },
-    },
-    categoryObj = {
-      0: { title: "Household" },
-      1: { title: "Office" },
-      2: { title: "Electronics" },
-      3: { title: "Shoes" },
-      4: { title: "Accessories" },
-      5: { title: "Game" },
-    },
-    stockObj = {
-      0: { title: "Out_of_Stock" },
-      1: { title: "In_Stock" },
-    },
-    stockFilterValObj = {
-      0: { title: "Out of Stock" },
-      1: { title: "In Stock" },
-    };
-
-  // E-commerce Products datatable
+    statusObj = [
+      { title: "Scheduled", class: "bg-label-warning" },
+      { title: "Published", class: "bg-label-success" },
+      { title: "Inactive", class: "bg-label-danger" },
+    ],
+    categoryObj = [
+      { title: "Household" },
+      { title: "Office" },
+      { title: "Electronics" },
+      { title: "Shoes" },
+      { title: "Accessories" },
+      { title: "Game" },
+    ],
+    stockObj = [{ title: "Out_of_Stock" }, { title: "In_Stock" }],
+    stockFilterValObj = [{ title: "Out of Stock" }, { title: "In Stock" }];
   const cookieData = Cookies.get("products");
 
-  // Check if data exists in cookies, if not fallback to default (e.g., AJAX)
   let productData = cookieData ? JSON.parse(cookieData) : [];
 
   if (dt_product_table.length) {
@@ -55,16 +46,14 @@ $(function () {
       columns: [
         // columns according to JSON
         { data: "id" },
+        { data: "id" },
         { data: "product_name" },
         { data: "category" },
         { data: "stock" },
         { data: "sku" },
         { data: "price" },
-        { data: "action" },
+        { data: "status" },
         { data: "" },
-        { data: "" },
-        { data: "" },
-    
       ],
       columnDefs: [
         {
@@ -200,9 +189,9 @@ $(function () {
             };
             return (
               "<span class='text-truncate'>" +
-              [$stock] +
+              [$stock === 1 ? "In Stock" : "Out of Stock"] +
               '<span class="d-none">' +
-              [$stock] +
+              [$stock === 1 ? "In Stock" : "Out of Stock"] +
               "</span>" +
               "</span>"
             );
@@ -226,6 +215,15 @@ $(function () {
             return "<span>" + $price + "</span>";
           },
         },
+        {
+          // price
+          targets: 7,
+          render: function (data, type, full, meta) {
+            var $price = full[["status"]];
+
+            return "<span>" + $price + "</span>";
+          },
+        },
 
         {
           // Actions
@@ -236,7 +234,11 @@ $(function () {
           render: function (data, type, full, meta) {
             return (
               '<div class="d-inline-block text-nowrap">' +
-              '<button class="btn btn-icon"><i class="bx bx-edit bx-md"></i></button>' +
+              `<button class="btn btn-icon" id=${
+                full[["id"]]
+              } onclick="handleEdit(${
+                full[["id"]]
+              })"><i class="bx bx-edit bx-md"></i></button>` +
               '<button class="btn btn-icon dropdown-toggle hide-arrow" data-bs-toggle="dropdown"><i class="bx bx-dots-vertical-rounded bx-md"></i></button>' +
               '<div class="dropdown-menu dropdown-menu-end m-0">' +
               '<a href="javascript:0;" class="dropdown-item">View</a>' +
@@ -445,7 +447,7 @@ $(function () {
       initComplete: function () {
         // Adding status filter once table initialized
         this.api()
-          .columns(-2)
+          .columns(7)
           .every(function () {
             var column = this;
             var select = $(
@@ -457,19 +459,12 @@ $(function () {
                 column.search(val ? "^" + val + "$" : "", true, false).draw();
               });
 
-            column
-              .data()
-              .unique()
-              .sort()
-              .each(function (d, j) {
-                select.append(
-                  '<option value="' +
-                    statusObj[d].title +
-                    '">' +
-                    statusObj[d].title +
-                    "</option>"
-                );
-              });
+            column.data().unique().sort();
+            statusObj.forEach((e) => {
+              select.append(
+                '<option value="' + e.title + '">' + e.title + "</option>"
+              );
+            });
           });
         // Adding category filter once table initialized
         this.api()
@@ -485,19 +480,12 @@ $(function () {
                 column.search(val ? "^" + val + "$" : "", true, false).draw();
               });
 
-            column
-              .data()
-              .unique()
-              .sort()
-              .each(function (d, j) {
-                select.append(
-                  '<option value="' +
-                    categoryObj[d].title +
-                    '">' +
-                    categoryObj[d].title +
-                    "</option>"
-                );
-              });
+            column.data().unique().sort();
+            categoryObj.forEach((e) => {
+              select.append(
+                '<option value="' + e.title + '">' + e.title + "</option>"
+              );
+            });
           });
         // Adding stock filter once table initialized
         this.api()
@@ -513,19 +501,12 @@ $(function () {
                 column.search(val ? "^" + val + "$" : "", true, false).draw();
               });
 
-            column
-              .data()
-              .unique()
-              .sort()
-              .each(function (d, j) {
-                select.append(
-                  '<option value="' +
-                    stockObj[d].title +
-                    '">' +
-                    stockFilterValObj[d].title +
-                    "</option>"
-                );
-              });
+            column.unique().sort();
+            stockFilterValObj.forEach((e) => {
+              select.append(
+                '<option value="' + e.title + '">' + e.title + "</option>"
+              );
+            });
           });
       },
     });
